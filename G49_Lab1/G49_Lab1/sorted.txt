@@ -1,0 +1,45 @@
+                .text
+
+		.global _start
+
+
+
+_start:		LDR R0, N          //R0 holds the value of the array length
+                MOV R1, #0         //R1 is set to false (=0). R1 = 0 means that the array is not yet sorted
+                LDR R2, =A         //R2 points to the array to be sorted
+
+LOOP_1:     	CMP R1, #0         //R1 is compared to 0 (false)
+            	BNE END            //if R1 doesn't equal 0, (if sorted= true) go to END. 
+            	MOV R1, #1         //Set R1 to 1, (sorted = true)
+            	ADD R3, R2, #4     // R3 points to the second value of the A array ( labelled as A[i])
+            
+
+LOOP_2:     	SUBS R7, R3, R2    //R7 holds the value of the adress R2 points to subtracted from the address R3 points to
+  	        LSR R7, R7, #2     //The value now in R7 is divided by 4 to determine the actual unitary increments (r
+        	CMP R7, R0         //Compare the value in R7 to the length of the array
+	        BEQ LOOP_1         //If the value in R7 equals N, then go to LOOP_1
+        	LDR R4, [R3]       // R4 holds the 2nd value of array  //i
+		LDR R5, [R3,#-4]   //R5 holds the first value of the array //i-1
+           	ADD R3,R3, #4      //R3 points to the next value in the array (R3 is incremented by one)
+            	CMP R5, R4         //The value in R5 is compared to that of R4
+           	BLT LOOP_2         //If value in R5 is smaller than that of R4, LOOP_2 again, if not, go to SWAP function
+
+
+//This swaps two values, the code will run this if it hasn't looped back to LOOP 1 or 2
+SWAP:      STR R4, [R3,#-8] 	  //Store the value in R4 in adress that R5 was referring to
+           STR R5, [R3,#-4] 	  //Store the value in R5 in the address that R4 was referring to
+           MOV R1, #0             //Set R1 to 0, (sorted= false)
+           B LOOP_2               //Go back to LOOP_2
+           
+
+
+
+
+
+END: 	                         // End LOOP_1 
+
+
+
+
+N: .word 8		         // N holds the address of the number of elements in the array to be sorted
+A: .word 4,3,5,7,1,2,9,10        // A is the given array to be sorted

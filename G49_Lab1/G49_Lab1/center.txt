@@ -1,0 +1,59 @@
+	.text
+
+	.global _start
+
+
+
+_start:
+		LDR R0,N  	//R0 holds the N (signal length)
+		LDR R1,SUM 	//R1 accumulates the sum
+		LDR R2,=DATA 	//R2 points to address of the input signal variable data 
+        
+        
+//This loop sums all of the data values
+LOOP:      LDR R3, [R2], #4 	//Load next element of DATA into R3
+           ADD R1, R3, R1	//Add R1 (current sum) and value at R3 into R1
+           SUBS R0,R0, #1	//Decremnt R0 (number of data elements)  by 1
+	   BEQ DONE		//If R0 = 0, go to DONE
+           B LOOP		//If R0 != 0, LOOP again
+
+//R1 is now the sum of DATA values
+DONE:      	LDR R0, N		//Reset R0 to the signal length N
+		MOV R3, #0		//Set R3 to 0 
+
+//This loop calculates the number of shifts that need to take place to take the average
+
+LOOP_2: 	LSR R0, #1 		//Left shift the signal length by 1 (divide it by 2)
+		ADD R3, R3, #1 		//R3 acts as an incrementor ( so add 1 to R3 within the loop until it finishes)
+            	CMP R0, #1		//Compare the signal length to 1, when it equals 1, end the loop
+		BEQ DONE_2		// go to DONE_2
+		B LOOP_2		//If the length is not 1, LOOP_2 again 
+		
+
+//R3 is now the number of shifts that need to take place ( R3 is the value of k, and we must divide the sum by 2^k)
+
+DONE_2: LSR R1, R3 //left shift the sum by value at R3 (conversely: divide sum by number of elements)
+	LDR R5, =DATA //Point R5 to the location of DATA (reassigning a pointer to this data)
+        LDR R0, N //Reload number of elements into R0
+
+//This loop shifts the array so that it is cenetered at zero
+LOOP_3:	LDR R6, [R5], #4       //Load R6 with the next value of data 
+	SUB R6, R6, R1         //Subtract the average from that data value
+
+	STR R6, [R5,#-4] //Store the shifted value back into DATA
+
+        SUBS R0, R0, #1 //Decrement the number of values left by 1
+
+        BEQ DONE_3 //once R0=0, go to DONE_3
+
+	B LOOP_3     // If R0 is not 0, LOOP_3 again
+
+
+DONE_3:  		
+
+
+END:        B END
+
+N:		.word 4 // the number of signals
+DATA:   .word 5,8,1,2   //the actual data
+SUM:    .word 0        //the address in memory of the sum
